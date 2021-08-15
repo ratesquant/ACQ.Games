@@ -153,7 +153,8 @@ namespace ACQ.Othello
             rect.Inflate(-m_nMargin, -m_nMargin);
 
             int nSize = m_game.CurrentBoard.Size;
-
+                       
+            
             //show available moves
             if (m_settings.ShowAvailableMoves)
             {
@@ -211,6 +212,16 @@ namespace ACQ.Othello
                     g.FillEllipse(m_marker_brush, marker_rect);
                     g.DrawEllipse(Pens.Black, marker_rect);
                 }
+
+            if (m_game.Over)
+            {
+                Font message_font = new Font(FontFamily.GenericSansSerif, 0.7f * (float)m_nCellSize, FontStyle.Bold);
+                enPiece winner = m_game.Winner;
+                
+                string game_status = winner != enPiece.Empty ? (winner == m_game.HumanPlayer ? "You Won!" : "Computer Won!") : "the game is a draw!";
+                
+                g.DrawString(game_status, message_font, Brushes.Red, rect.Left, rect.Top);
+            }            
         }
 
         public void ResizeForm()
@@ -244,7 +255,7 @@ namespace ACQ.Othello
                 UpdatedStatus();
                 pictureBox1.Refresh();
             }
-            Console.WriteLine("Mouse click: {0} {1}", pos_x, pos_y);
+            //Console.WriteLine("Mouse click: {0} {1}", pos_x, pos_y);
         }
 
         private void undoToolStripMenuItem_Click(object sender, EventArgs e)
@@ -333,7 +344,8 @@ namespace ACQ.Othello
                     int total_weigth = mobility_weight + mask_weight + count_weight;
                  
                     vComputerPlayers[enPiece.White] = new ComputerPlayerBalanced(enPiece.White, 5, 20, 1, 1, true);
-                    vComputerPlayers[enPiece.Black] = new ComputerPlayerMobility(enPiece.Black, 5);
+                    // vComputerPlayers[enPiece.Black] = new ComputerPlayerMobility(enPiece.Black, 5);
+                    vComputerPlayers[enPiece.Black] = new ComputerPlayerMasked(enPiece.Black, 5, true);                    
 
                     m_game = new Game(vComputerPlayers);
 

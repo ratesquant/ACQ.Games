@@ -13,7 +13,7 @@ namespace ACQ.Othello
     };
 
     [Serializable]
-    public class Position
+    public struct Position
     {
         int x;
         int y;
@@ -42,12 +42,9 @@ namespace ACQ.Othello
             }
         }
 
-        public static bool operator ==(Position pos1, Position pos2)
+        public static bool operator ==(Position p1, Position p2)
         {
-            if (pos1.x == pos2.x && pos1.y == pos2.y)
-                return true;
-            else
-                return false;
+            return (p1.x == p2.x) && (p1.y == p2.y);
         }
         public static bool operator !=(Position pos1, Position pos2)
         {
@@ -61,24 +58,11 @@ namespace ACQ.Othello
         {
             return String.Format("({0}; {1})", x, y);
         }
-        public override bool Equals(object obj)
+        
+        public override bool Equals(object o)
         {
-            // If parameter is null return false.
-            if (obj == null)
-            {
-                return false;
-            }
-
-            // If parameter cannot be cast to Point return false.
-            Position p = obj as Position;
-            if ((System.Object)p == null)
-            {
-                return false;
-            }
-
-            // Return true if the fields match:
-            return (x == p.x) && (y == p.y);
-        }
+            return (o.GetType() == this.GetType()) ? (this == (Position)o) : false;
+        }        
         public bool Equals(Position p)
         {
             // If parameter is null return false:
@@ -174,6 +158,9 @@ namespace ACQ.Othello
         }
     }
     
+    /// <summary>
+    /// The class is written for clarity not performance 
+    /// </summary>
     [Serializable]
     public class Board : ICloneable
     {

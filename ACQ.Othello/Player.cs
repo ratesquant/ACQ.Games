@@ -51,23 +51,6 @@ namespace ACQ.Othello
         }
     }
 
-    public class VariableImportance
-    {
-        public readonly double[] m_vMaskImportance;
-
-        public VariableImportance(double maskImportanceStart, double maskImportanceWidth)
-        {
-            int maxMoves = 60;
-
-            m_vMaskImportance = new double[maxMoves];
-           
-            for (int i = 0; i < maxMoves; i++)
-            {
-                m_vMaskImportance[i] = 1.0 / (Math.Exp(-(i - maskImportanceStart) / maskImportanceWidth) + 1);                
-            }
-        }
-    }
-
     [Serializable]
     public class ComputerPlayerMobility : ComputerPlayer
     {
@@ -456,6 +439,8 @@ namespace ACQ.Othello
 
                 List<Move> vMoves = node.board.GetAvailableMoves(piece);
 
+                int best_score = node.max ? Int32.MinValue : Int32.MaxValue;
+
                 //Cycle over ALL new nodes        		
                 foreach (Move move in vMoves)
                 {
@@ -467,6 +452,7 @@ namespace ACQ.Othello
 
                     if (node.max)
                     {
+                        //best_score = Math.Max(best_score, nResult);
                         //max node Alpha = max(Alpha, Result)
                         if (node.alpha < nResult)
                         {
@@ -477,10 +463,14 @@ namespace ACQ.Othello
                         //Beta is the rating of the best move from min perspective
                         //min will choose move with Beta thus if our Alpha is higher then he will never let us play this move 
                         if (node.beta <= node.alpha)
+                        {
+                           // System.Diagnostics.Debug.Assert(best_score == node.alpha);
                             return node.alpha;
+                        }
                     }
                     else
                     {
+                        //best_score = Math.Min(best_score, nResult);
                         //min node Beta = min(Beta, Result)
                         if (node.beta > nResult)
                         {
@@ -490,7 +480,10 @@ namespace ACQ.Othello
                         }
                         //Cut off                         
                         if (node.beta <= node.alpha)
+                        {
+                            //System.Diagnostics.Debug.Assert(best_score == node.beta);
                             return node.beta;
+                        }
                     }
 
                 }//end of cycle 

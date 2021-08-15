@@ -125,9 +125,6 @@
     <None Include="images\Edit_UndoHS.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="images\SearchWebHS.png" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="images\Help.png" />
   </ItemGroup>
   <ItemGroup>

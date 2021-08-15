@@ -45,8 +45,8 @@ namespace ACQ.Othello
             {
                 enPiece piece = Board.FlipPiece(m_HumanPlayer);
 
-                //m_vComputerPlayers.Add(piece, new ComputerPlayerBalanced(piece, depth, 20, 1, 1, bPerfectEnd));
-                m_vComputerPlayers.Add(piece, new ComputerPlayerMasked(piece, depth, bPerfectEnd));
+                m_vComputerPlayers.Add(piece, new ComputerPlayerBalanced(piece, depth, 20, 1, 1, bPerfectEnd));
+                //m_vComputerPlayers.Add(piece, new ComputerPlayerMasked(piece, depth, bPerfectEnd));
                 //m_vComputerPlayers.Add(piece, new ComputerPlayerDeepSampler(piece));
             }
         }
