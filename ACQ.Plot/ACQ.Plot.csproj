@@ -67,6 +67,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Controls\ProfileEdit1D.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Controls\ProfileEdit1D.Designer.cs">
+      <DependentUpon>ProfileEdit1D.cs</DependentUpon>
+    </Compile>
     <Compile Include="DraggablePlot.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
@@ -76,6 +82,9 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="Controls\ProfileEdit1D.resx">
+      <DependentUpon>ProfileEdit1D.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
     </EmbeddedResource>
