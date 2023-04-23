@@ -17,14 +17,6 @@ namespace ACQ.Plot
         DataTable m_dt; 
         public MainForm()
         {
-            InitializeComponent();
-
-            this.toolStripComboBox1.Items.Add("1D Profile");
-            this.toolStripComboBox1.Items.Add("2D Profile");
-            this.toolStripComboBox1.Items.Add("2D S-Curve");
-            this.toolStripComboBox1.SelectedIndex = 0;
-
-
             //Create Example Data
             m_dt = new DataTable();
             var colx = m_dt.Columns.Add("X", typeof(double));
@@ -37,6 +29,13 @@ namespace ACQ.Plot
             {
                 m_dt.Rows.Add(xs[i], ys[i]);
             }
+
+            InitializeComponent();
+
+            this.toolStripComboBox1.Items.Add("1D Profile");
+            this.toolStripComboBox1.Items.Add("2D Profile");
+            this.toolStripComboBox1.Items.Add("2D S-Curve");
+            this.toolStripComboBox1.SelectedIndex = 0;           
         }
 
         private void toolStripComboBox1_SelectedIndexChanged(object sender, EventArgs e)

@@ -13,14 +13,18 @@ using ScottPlot;
 namespace ACQ.Plot.Controls
 {
     public partial class ProfileEdit1D : UserControl
-    {
-        private DataTable m_dt;
+    {        
         private DraggablePlot1D m_scatter;
         public ProfileEdit1D()
         {
             InitializeComponent();
 
             formsPlot1.Plot.Style(Style.Seaborn);
+
+            foreach (DataGridViewColumn col in this.dataGridView1.Columns)
+            {
+                col.SortMode = DataGridViewColumnSortMode.NotSortable;
+            }
         }
 
         private void buttonAdd_Click(object sender, EventArgs e)
@@ -34,15 +38,11 @@ namespace ACQ.Plot.Controls
 
         void InitPlot(DataTable dt)
         {
-            double[] xs, ys;
+            m_scatter = new DraggablePlot1D();
 
-            if (dt == null)
+            if (dt != null)
             {
-                xs = new double[] { 0, 1, 2, 3, 4 };
-                ys = new double[] { 0, 1, 2, 1, 0 };
-            }
-            else
-            {
+                double[] xs, ys;
 
                 int n = dt.Rows.Count;
                 xs = new double[n];
@@ -56,10 +56,9 @@ namespace ACQ.Plot.Controls
                 }
 
                 Array.Sort(xs, ys);
-            }
-
-            m_scatter = new DraggablePlot1D();
-            m_scatter.AddRange(xs, ys);
+                m_scatter.AddRange(xs, ys);
+            }           
+            
             m_scatter.LineWidth = 2f;
             m_scatter.MarkerSize = 5f;
 
@@ -68,18 +67,19 @@ namespace ACQ.Plot.Controls
 
             formsPlot1.Plot.Clear();
             formsPlot1.Plot.Add(m_scatter);
-            formsPlot1.Refresh();
-
-            this.dataGridView1.DataSource = m_scatter.Data;
-            foreach (DataGridViewColumn col in this.dataGridView1.Columns)
-            {
-                col.SortMode = DataGridViewColumnSortMode.NotSortable;
-            }
+            formsPlot1.Refresh();                        
         }
 
         private void Scatter_Dragged(object sender, EventArgs e)
         {
+            //TODO: do this in a smart way
             this.dataGridView1.DataSource = m_scatter.Data;
+            /*
+            for (int i = 0; i < m_scatter.Data.Rows.Count; i++)
+            {
+                (this.dataGridView1.DataSource as DataTable).Rows[i]["X"] = (double)m_scatter.Data.Rows[i]["X"];
+                (this.dataGridView1.DataSource as DataTable).Rows[i]["Y"] = (double)m_scatter.Data.Rows[i]["Y"];                
+            }*/
         }
 
         // use a custom function to limit the movement of points
@@ -124,26 +124,27 @@ namespace ACQ.Plot.Controls
         {
             DataTable dt = this.dataGridView1.DataSource as DataTable;
             InitPlot(dt);
-        }
-
-        private void dataGridView1_RowsRemoved(object sender, DataGridViewRowsRemovedEventArgs e)
-        {
-            //DataTable dt = this.dataGridView1.DataSource as DataTable;
-            //InitPlot(dt);            
-            Console.WriteLine("remove row {0}", e.RowCount);
+            Console.WriteLine("value changed");
         }
 
         public DataTable Data
         {
             set 
             {
-                m_dt = value;
-                InitPlot(m_dt);
+                this.dataGridView1.DataSource = value;                
+
+                InitPlot(value);
             }
             get 
             {
-                return m_dt;
+                return this.dataGridView1.DataSource as DataTable;
             }
+        }
+
+        private void dataGridView1_UserDeletedRow(object sender, DataGridViewRowEventArgs e)
+        {
+            DataTable dt = this.dataGridView1.DataSource as DataTable;
+            InitPlot(dt);
         }
     }
 }
