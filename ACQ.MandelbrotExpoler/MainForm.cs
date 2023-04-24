@@ -19,7 +19,7 @@ namespace ACQ.MandelbrotExplorer
     {
         ColorPalette m_palette;
         DirectBitmap m_bitmap;
-        int m_max_it = 200;
+        int m_max_it = 250;
         Mandelbrot m_fgen;
 
         //mouse zoom
@@ -48,9 +48,9 @@ namespace ACQ.MandelbrotExplorer
             {
                 this.toolStripComboBox1.Items.Add(palette_name);
             }
-            this.toolStripComboBox1.SelectedItem = "Grayscale";
+            this.toolStripComboBox1.SelectedItem = "Jet";
 
-            foreach (int max_it in new int[] { 10, 100, m_max_it, 1000, 2000 })
+            foreach (int max_it in new int[] { 10, 100, m_max_it, 500, 1000, 2000 })
             {
                 this.toolStripComboBox2.Items.Add(max_it);
             }
@@ -171,8 +171,13 @@ namespace ACQ.MandelbrotExplorer
             m_mouse_pointer = e.Location;
 
             var point = m_fgen.GetComplexPoint(e.X, e.Y);
-            int it_count = m_fgen.IterationMap[e.X, e.Y];
+            int it_count = 0;
             double zoom_level = m_fgen.ZoomLevel;
+
+            if (e.X >=0 && e.X < m_fgen.Width && e.Y < m_fgen.Height & e.Y >=0)
+            {
+                it_count = m_fgen.IterationMap[e.X, e.Y];
+            }
 
             if (m_move)
             {
@@ -274,6 +279,42 @@ namespace ACQ.MandelbrotExplorer
 
             UpdateBitmap();
             this.pictureBox1.Refresh();
+        }
+
+        private void toolStripButton3_Click(object sender, EventArgs e)
+        {
+            SaveFileDialog saveFileDialog1 = new SaveFileDialog();
+            saveFileDialog1.Title = "Save Poster as png";
+            saveFileDialog1.Filter = "png files (*.png)|*.png";
+
+            if (saveFileDialog1.ShowDialog() == DialogResult.OK)
+            {
+                SavePoster(saveFileDialog1.FileName);
+            }
+
+            // img.Save("file.png", ImageFormat.Png);
+        }
+
+        private void SavePoster(string filename)
+        {
+            int poster_width = 3840;
+            int poster_height = 2160;
+            Mandelbrot fgen = new Mandelbrot(m_max_it, poster_width, poster_height, m_fgen.MinX, m_fgen.MaxX, m_fgen.MaxY);
+
+            fgen.UpdateParallel();
+
+            using (var bitmap = new DirectBitmap(fgen.Width, fgen.Height))
+            {
+
+                for (int i = 0; i < fgen.Width; i++)
+                {
+                    for (int j = 0; j < fgen.Height; j++)
+                    {
+                        bitmap.SetPixel(i, j, m_palette[fgen.IterationMap[i, j], fgen.MaxIt]);
+                    }
+                }
+                bitmap.Bitmap.Save(filename, ImageFormat.Png);
+            }
         }
     }
 

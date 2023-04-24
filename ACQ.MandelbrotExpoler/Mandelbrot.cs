@@ -35,6 +35,16 @@ namespace ACQ.MandelbrotExplorer
             SetDefaultRange();
         }
 
+        public Mandelbrot(int max_it, int xsize, int ysize, double min_x, double max_x, double max_y)
+        {
+            m_max_it = max_it;
+            m_it_map = new int[xsize, ysize];
+
+            m_max_x = max_x;
+            m_min_x = min_x;
+            m_max_y = max_y;
+        }
+
         public int MaxIt
         {
             get 
@@ -45,6 +55,30 @@ namespace ACQ.MandelbrotExplorer
             {
                 m_max_it = value;
                 UpdateParallel();
+            }
+        }
+
+        public double MaxX
+        {
+            get
+            {
+                return m_max_x;
+            }
+        }
+
+        public double MinX
+        {
+            get
+            {
+                return m_min_x;
+            }
+        }
+
+        public double MaxY
+        {
+            get
+            {
+                return m_max_y;
             }
         }
 

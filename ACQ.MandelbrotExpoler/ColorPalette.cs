@@ -43,7 +43,7 @@ namespace ACQ.MandelbrotExplorer
         {
             for (int i = 0; i < palette.Length; i++)
             {
-                double x = (double)i * (lut.Length - 1) / (palette.Length - 1);
+                double x = (lut.Length - 1) * Math.Sqrt( (double)i  / (palette.Length - 1) );
                 int lut_index1 = (int)(x);
                 lut_index1 = lut_index1 < (lut.Length - 1) ? lut_index1 : lut_index1 - 1;
 
@@ -69,8 +69,10 @@ namespace ACQ.MandelbrotExplorer
         {
             for (int i = 0; i < palette.Length; i++)
             {
-                int value = (int)(128.0 * i / (palette.Length - 1));
-                int value_rg = (int)(255.0 * i / (palette.Length - 1));
+                double x = Math.Sqrt((double)i / (palette.Length - 1));
+
+                int value = (int)(128.0 * x);
+                int value_rg = (int)(255.0 * x);
                 palette[i] = Color.FromArgb(value + 127, value_rg, value_rg).ToArgb();
             }
             palette[palette.Length - 1] = Color.FromArgb(0, 0, 0).ToArgb();
@@ -79,17 +81,15 @@ namespace ACQ.MandelbrotExplorer
 
     class ColorPaletteGrayscale : ColorPalette
     {
-        public ColorPaletteGrayscale(int n_colors) : base(n_colors)
-        {
-        }
+        public ColorPaletteGrayscale(int n_colors) : base(n_colors){}
 
         protected override void Init(int[] palette)
         {
             for (int i = 0; i < palette.Length; i++)
             {
-                double col = Math.Pow((double)i / (palette.Length - 1), 0.7);
+                double x = Math.Sqrt((double)i / (palette.Length - 1));
 
-                int value = (int) (255.0 * col);
+                int value = (int) (255.0 * x);
                 palette[i] = Color.FromArgb(255 - value, 255 - value, 255 - value).ToArgb();
             }
         }
@@ -97,15 +97,13 @@ namespace ACQ.MandelbrotExplorer
 
     class ColorPaletteBlue : ColorPalette
     {
-        public ColorPaletteBlue(int n_colors) : base(n_colors)
-        {
-        }
+        public ColorPaletteBlue(int n_colors) : base(n_colors){}
 
         protected override void Init(int[] palette)
         {
             for (int i = 0; i < palette.Length; i++)
             {
-                double col = Math.Pow((double)i / (palette.Length - 1), 0.7);
+                double col = Math.Sqrt((double)i / (palette.Length - 1));
 
                 int value = (int)(200.0 * col);
                 int value_rg = (int)(255.0 * col);
