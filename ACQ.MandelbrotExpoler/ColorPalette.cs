@@ -43,7 +43,7 @@ namespace ACQ.MandelbrotExplorer
         {
             for (int i = 0; i < palette.Length; i++)
             {
-                double x = (lut.Length - 1) * Math.Sqrt( (double)i  / (palette.Length - 1) );
+                double x = (lut.Length - 1) * Math.Sqrt( (double)i  / (palette.Length - 1));
                 int lut_index1 = (int)(x);
                 lut_index1 = lut_index1 < (lut.Length - 1) ? lut_index1 : lut_index1 - 1;
 
@@ -115,7 +115,7 @@ namespace ACQ.MandelbrotExplorer
 
     class ColorPaletteJet : ColorPalette
     {
-        Color[] m_lut = new Color[] { 
+        static Color[] m_lut = new Color[] { 
             Color.FromArgb(0, 0, 128), Color.FromArgb(0, 0, 255),
             Color.FromArgb(0, 128, 255), Color.FromArgb(0, 255, 255),
             Color.FromArgb(128, 255, 128), Color.FromArgb(255, 255, 0),
@@ -132,7 +132,7 @@ namespace ACQ.MandelbrotExplorer
 
     class ColorPaletteCubeHelix : ColorPalette
     {
-        Color[] m_lut = new Color[] {
+        static Color[] m_lut = new Color[] {
             Color.FromArgb(0, 0, 0),
             Color.FromArgb(22, 12, 31), Color.FromArgb(26, 33, 62),
             Color.FromArgb(22, 61, 78), Color.FromArgb(23, 90, 73),
@@ -140,10 +140,72 @@ namespace ACQ.MandelbrotExplorer
             Color.FromArgb(135, 122, 58), Color.FromArgb(181,121, 94),
             Color.FromArgb(208, 126, 147), Color.FromArgb(212, 144, 198),
             Color.FromArgb(202, 171, 232), Color.FromArgb(193, 202, 243),
-            Color.FromArgb(200, 228, 240), Color.FromArgb(224, 245, 240),Color.FromArgb(255, 255, 255)};
+            Color.FromArgb(200, 228, 240), Color.FromArgb(224, 245, 240),
+            Color.FromArgb(255, 255, 255)};
         public ColorPaletteCubeHelix(int n_colors) : base(n_colors)
         {
            
+        }
+        protected override void Init(int[] palette)
+        {
+            Interpolate(palette, m_lut);
+        }
+    }
+
+    class ColorPaletteRainbow : ColorPalette
+    {
+        static Color[] m_lut = new Color[] {
+            Color.FromArgb(0, 0, 255),
+            Color.FromArgb(0, 255, 255), 
+            Color.FromArgb(0, 255, 0),Color.FromArgb(255, 255, 0),Color.FromArgb(255, 0, 0)};
+        public ColorPaletteRainbow(int n_colors) : base(n_colors)
+        {
+
+        }
+        protected override void Init(int[] palette)
+        {
+            Interpolate(palette, m_lut);
+        }
+    }
+    class ColorPaletteAll : ColorPalette
+    {
+        static Color[] m_lut;
+        public ColorPaletteAll(int n_colors) : base(n_colors)
+        {
+        }
+
+        static ColorPaletteAll()
+        {
+            var colors = Enum.GetValues(typeof(KnownColor)) as KnownColor[];
+
+            m_lut = new Color[colors.Length];
+
+            for (int i = 0; i<colors.Length; i++)
+            {
+                m_lut[i] = Color.FromKnownColor(colors[i]);
+            }
+        }
+        protected override void Init(int[] palette)
+        {
+            Interpolate(palette, m_lut);
+        }
+    }
+
+    class ColorPaletteBanded : ColorPalette
+    {
+        static Color[] m_lut;
+        public ColorPaletteBanded(int n_colors) : base(n_colors)
+        {
+        }
+
+        static ColorPaletteBanded()
+        {
+            m_lut = new Color[64];
+
+            for (int i = 0; i < m_lut.Length; i++)
+            {
+                m_lut[i] = (i % 2 == 0) ? Color.AliceBlue : Color.Coral;
+            }
         }
         protected override void Init(int[] palette)
         {

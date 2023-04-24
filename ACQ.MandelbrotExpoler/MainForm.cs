@@ -17,6 +17,7 @@ namespace ACQ.MandelbrotExplorer
     /// </summary>
     public partial class MainForm : Form
     {
+        readonly bool m_static_palette_scale = true;
         ColorPalette m_palette;
         DirectBitmap m_bitmap;
         int m_max_it = 250;
@@ -144,11 +145,34 @@ namespace ACQ.MandelbrotExplorer
                 m_bitmap = new DirectBitmap(m_fgen.Width, m_fgen.Height);
             }
 
-            for (int i = 0; i < m_fgen.Width; i++)
+            if (m_static_palette_scale)
             {
-                for (int j = 0; j < m_fgen.Height; j++)
+                int black_color = Color.FromArgb(0, 0, 0).ToArgb();
+
+                for (int i = 0; i < m_fgen.Width; i++)
                 {
-                    m_bitmap.SetPixel(i, j, m_palette[m_fgen.IterationMap[i, j], m_fgen.MaxIt]);
+                    for (int j = 0; j < m_fgen.Height; j++)
+                    {
+                        int value = m_fgen.IterationMap[i, j];                        
+                        
+                        if(value == m_fgen.MaxIt)
+                            m_bitmap.SetPixel(i, j, black_color);
+                        else 
+                            m_bitmap.SetPixel(i, j, m_palette[m_fgen.IterationMap[i, j], 2000]);
+
+                        //show palette
+                        //m_bitmap.SetPixel(i, j, m_palette[i, m_fgen.Width-1]);
+                    }
+                }
+            }
+            else
+            {
+                for (int i = 0; i < m_fgen.Width; i++)
+                {
+                    for (int j = 0; j < m_fgen.Height; j++)
+                    {
+                        m_bitmap.SetPixel(i, j, m_palette[m_fgen.IterationMap[i, j], m_fgen.MaxIt]);
+                    }
                 }
             }
         }
