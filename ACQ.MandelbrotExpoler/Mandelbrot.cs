@@ -308,7 +308,8 @@ namespace ACQ.MandelbrotExplorer
         {
             double min_y = max_y - (ny - 1) * (max_x - min_x) / (nx - 1);
 
-            var buffer = m_accelerator.Allocate1D<int>(nx * ny);
+            int total_size = nx * ny;
+            var buffer = m_accelerator.Allocate1D<int>(total_size);
 
             // Launch buffer.Length many threads and pass a view to buffer
             // Note that the kernel launch does not involve any boxing
@@ -323,7 +324,7 @@ namespace ACQ.MandelbrotExplorer
 
             var data = buffer.GetAsArray1D();
 
-            for (int i = 0; i < nx * ny; i++)
+            for (int i = 0; i < total_size; i++)
             {
                 it_map[i % nx, i / nx] = data[i];
             }           
@@ -333,15 +334,13 @@ namespace ACQ.MandelbrotExplorer
            Index1D index,             // The global thread index (1D in this case)            
            ArrayView<int> dataView,   // A view to a chunk of memory (1D in this case)
            int max_it, int nx, int ny, double min_x, double max_x, double min_y, double max_y)              // A sample uniform constant
-        {
-
-            int ix = index % nx;
+        {   
             int iy = index / nx;
 
-            double alpha_x = (double)ix / (nx - 1);
+            double alpha_x = (double)(index % nx) / (nx - 1);
             double x0 = min_x * (1.0 - alpha_x) + max_x * alpha_x;
 
-            double alpha_y = (double)iy / (ny - 1);
+            double alpha_y = (double)(iy) / (ny - 1);
             double y0 = max_y * (1.0 - alpha_y) + min_y * alpha_y;// current imaginary value                    
 
             double z_real = x0;
