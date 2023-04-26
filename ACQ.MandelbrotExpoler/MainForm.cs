@@ -10,6 +10,7 @@ using System.Windows.Forms;
 using System.Runtime.InteropServices;
 using System.Drawing.Imaging;
 
+
 namespace ACQ.MandelbrotExplorer
 {
     /// <summary>
@@ -17,9 +18,10 @@ namespace ACQ.MandelbrotExplorer
     /// </summary>
     public partial class MainForm : Form
     {
+        const int m_total_max_it = 2000;
         readonly bool m_static_palette_scale = true;
         ColorPalette m_palette;
-        DirectBitmap m_bitmap;
+        DirectBitmap m_bitmap;        
         int m_max_it = 250;
         Mandelbrot m_fgen;
 
@@ -29,7 +31,6 @@ namespace ACQ.MandelbrotExplorer
 
         bool m_move = false;
         Point m_movePoint;
-
         Point m_mouse_pointer;
         
         private Dictionary<string, Type> m_available_palettes = new Dictionary<string, Type>();
@@ -38,6 +39,8 @@ namespace ACQ.MandelbrotExplorer
         {
             InitializeComponent();
             EnumerateAvailablePalettes();
+
+            //TestCUDA();
 
             this.pictureBox1.MouseWheel += new System.Windows.Forms.MouseEventHandler(this.pictureBox1_MouseWheel);
 
@@ -51,7 +54,7 @@ namespace ACQ.MandelbrotExplorer
             }
             this.toolStripComboBox1.SelectedItem = "Jet";
 
-            foreach (int max_it in new int[] { 10, 100, m_max_it, 500, 1000, 2000 })
+            foreach (int max_it in new int[] { 10, 100, m_max_it, 500, 1000, m_total_max_it })
             {
                 this.toolStripComboBox2.Items.Add(max_it);
             }
@@ -65,7 +68,7 @@ namespace ACQ.MandelbrotExplorer
             this.SetStyle(ControlStyles.ResizeRedraw, true);
 
             this.pictureBox1.Refresh();
-        }        
+        }      
 
         void EnumerateAvailablePalettes()
         {
@@ -99,9 +102,9 @@ namespace ACQ.MandelbrotExplorer
             m_fgen.SetRange(xpos_min, xpos_max, ypos_max);
 
             UpdateMandelbrot();
+            UpdateStatusLabel();
 
             this.pictureBox1.Refresh();
-
         }
 
         private void pictureBox1_Paint(object sender, PaintEventArgs e)
@@ -127,7 +130,7 @@ namespace ACQ.MandelbrotExplorer
         {
             HRTimer timer = new HRTimer();            
 
-            m_fgen.UpdateParallel();
+            m_fgen.Update();
 
             double elapsed = timer.toc();
 
@@ -144,37 +147,14 @@ namespace ACQ.MandelbrotExplorer
                     m_bitmap.Dispose();
                 m_bitmap = new DirectBitmap(m_fgen.Width, m_fgen.Height);
             }
-
-            if (m_static_palette_scale)
-            {
-                int black_color = Color.FromArgb(0, 0, 0).ToArgb();
-
-                for (int i = 0; i < m_fgen.Width; i++)
-                {
-                    for (int j = 0; j < m_fgen.Height; j++)
-                    {
-                        int value = m_fgen.IterationMap[i, j];                        
-                        
-                        if(value == m_fgen.MaxIt)
-                            m_bitmap.SetPixel(i, j, black_color);
-                        else 
-                            m_bitmap.SetPixel(i, j, m_palette[m_fgen.IterationMap[i, j], 2000]);
-
-                        //show palette
-                        //m_bitmap.SetPixel(i, j, m_palette[i, m_fgen.Width-1]);
-                    }
-                }
-            }
-            else
+          
+            for (int j = 0; j < m_fgen.Height; j++)                    
             {
                 for (int i = 0; i < m_fgen.Width; i++)
                 {
-                    for (int j = 0; j < m_fgen.Height; j++)
-                    {
-                        m_bitmap.SetPixel(i, j, m_palette[m_fgen.IterationMap[i, j], m_fgen.MaxIt]);
-                    }
+                    m_bitmap.SetPixel(i, j, m_palette.GetRescaledColor(m_fgen.IterationMap[i, j]));
                 }
-            }
+            }          
         }
 
         private void pictureBox1_Resize(object sender, EventArgs e)
@@ -192,16 +172,7 @@ namespace ACQ.MandelbrotExplorer
 
         private void pictureBox1_MouseMove(object sender, MouseEventArgs e)
         {
-            m_mouse_pointer = e.Location;
-
-            var point = m_fgen.GetComplexPoint(e.X, e.Y);
-            int it_count = 0;
-            double zoom_level = m_fgen.ZoomLevel;
-
-            if (e.X >=0 && e.X < m_fgen.Width && e.Y < m_fgen.Height & e.Y >=0)
-            {
-                it_count = m_fgen.IterationMap[e.X, e.Y];
-            }
+            m_mouse_pointer = e.Location;     
 
             if (m_move)
             {
@@ -218,8 +189,23 @@ namespace ACQ.MandelbrotExplorer
             {
                 this.pictureBox1.Refresh();
             }
-            
-            this.toolStripStatusLabel1.Text = String.Format("Re: {0:F12} Im: {1:F12} (it: {2}), Zoom: {3:F1}", point.Item1, point.Item2, it_count, zoom_level);            
+
+            UpdateStatusLabel();
+        }
+
+        void UpdateStatusLabel()
+        {
+            if (m_fgen != null)
+            {
+                var point = m_fgen.GetComplexPoint(m_mouse_pointer.X, m_mouse_pointer.Y);
+                int it_count = 0;
+                if (m_mouse_pointer.X >= 0 && m_mouse_pointer.X < m_fgen.Width && m_mouse_pointer.Y < m_fgen.Height & m_mouse_pointer.Y >= 0)
+                {
+                    it_count = m_fgen.IterationMap[m_mouse_pointer.X, m_mouse_pointer.Y];
+                }
+
+                this.toolStripStatusLabel1.Text = String.Format("Re: {0:F12} Im: {1:F12} (it: {2}), Zoom: {3:E2}", point.Item1, point.Item2, it_count, m_fgen.ZoomLevel);
+            }
         }
 
         private void pictureBox1_MouseDown(object sender, MouseEventArgs e)
@@ -289,7 +275,16 @@ namespace ACQ.MandelbrotExplorer
             if (m_available_palettes.ContainsKey(palette_name))
             {
                 m_palette  = Activator.CreateInstance(m_available_palettes[palette_name], 256) as ColorPalette;
-                
+
+                if (m_static_palette_scale)
+                {
+                    m_palette.RescaleForMax(m_total_max_it, m_max_it);
+                }
+                else
+                {
+                    m_palette.RescaleForMax(m_max_it, m_max_it);
+                }
+
                 UpdateBitmap();
                 this.pictureBox1.Refresh();
             }
@@ -300,6 +295,15 @@ namespace ACQ.MandelbrotExplorer
             m_max_it = (int)this.toolStripComboBox2.SelectedItem;
 
             m_fgen.MaxIt = m_max_it;
+
+            if (m_static_palette_scale)
+            {
+                m_palette.RescaleForMax(m_total_max_it, m_max_it);
+            }
+            else
+            {
+                m_palette.RescaleForMax(m_max_it, m_max_it);
+            }
 
             UpdateBitmap();
             this.pictureBox1.Refresh();
@@ -323,16 +327,16 @@ namespace ACQ.MandelbrotExplorer
         {
             int poster_width = 3840;
             int poster_height = 2160;
-            Mandelbrot fgen = new Mandelbrot(m_max_it, poster_width, poster_height, m_fgen.MinX, m_fgen.MaxX, m_fgen.MaxY);
+            Mandelbrot fgen = new Mandelbrot(m_total_max_it, poster_width, poster_height, m_fgen.MinX, m_fgen.MaxX, m_fgen.MaxY);
 
-            fgen.UpdateParallel();
+            fgen.Update();
 
             using (var bitmap = new DirectBitmap(fgen.Width, fgen.Height))
             {
 
-                for (int i = 0; i < fgen.Width; i++)
+                for (int j = 0; j < fgen.Height; j++)                    
                 {
-                    for (int j = 0; j < fgen.Height; j++)
+                    for (int i = 0; i < fgen.Width; i++)
                     {
                         bitmap.SetPixel(i, j, m_palette[fgen.IterationMap[i, j], fgen.MaxIt]);
                     }

@@ -1,8 +1,16 @@
-﻿using System;
+﻿#define GPU
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
+
+#if GPU
+using ILGPU;
+using ILGPU.Runtime;
+#endif
 
 namespace ACQ.MandelbrotExplorer
 {
@@ -17,12 +25,16 @@ namespace ACQ.MandelbrotExplorer
     /// </summary>
     class Mandelbrot
     {
+#if GPU
+        private MandelbrotGPU m_gpu_calc = new MandelbrotGPU();
+#endif
+
         private const double m_max_x_default = 0.9;
         private const double m_min_x_default = -2.5;
         private const double m_max_y_default = 0.92;
 
         private int m_max_it;
-        private double m_max_x, m_min_x;        
+        private double m_max_x, m_min_x;
         private double m_max_y; //we keep aspect ratio constant, so min_y will be determined by the size of the window
 
         int[,] m_it_map;
@@ -47,11 +59,11 @@ namespace ACQ.MandelbrotExplorer
 
         public int MaxIt
         {
-            get 
+            get
             {
                 return m_max_it;
             }
-            set 
+            set
             {
                 m_max_it = value;
                 UpdateParallel();
@@ -106,9 +118,9 @@ namespace ACQ.MandelbrotExplorer
             }
         }
 
-        public Tuple<double, double> RangeX 
+        public Tuple<double, double> RangeX
         {
-            get 
+            get
             {
                 return Tuple.Create(m_min_x, m_max_x);
             }
@@ -127,10 +139,11 @@ namespace ACQ.MandelbrotExplorer
             int nx = this.Width;
             int ny = this.Height;
 
-            double alpha_x = (double) xpos / (nx - 1);
-            double dx = (m_max_x - m_min_x) / (nx - 1);            
+            double alpha_x = (double)xpos / (nx - 1);
+            double alpha_y = (double)ypos / (ny - 1);
+            double min_y = m_max_y - (ny - 1) * (m_max_x - m_min_x) / (nx - 1);            
 
-            return Tuple.Create(m_min_x * (1.0 - alpha_x) + m_max_x * alpha_x, m_max_y - (ypos) * dx);
+            return Tuple.Create(m_min_x * (1.0 - alpha_x) + m_max_x * alpha_x, min_y * (1.0 - alpha_y) + m_max_y * alpha_y);
         }
 
         public void Resize(int xsize, int ysize)
@@ -173,7 +186,7 @@ namespace ACQ.MandelbrotExplorer
             double dx = (m_max_x - m_min_x) / (nx - 1);
 
             double x_delta = xpos_delta * dx;
-            
+
             m_min_x = m_min_x - x_delta;
             m_max_x = m_max_x - x_delta;
             m_max_y = m_max_y + ypos_delta * dx;
@@ -181,11 +194,16 @@ namespace ACQ.MandelbrotExplorer
 
         public void Update()
         {
+            //UpdateParallel();
+            m_gpu_calc.Update(this.Width, this.Height, m_max_it, m_min_x, m_max_x, m_max_y, m_it_map);            
+        }
+
+        private void UpdateBasic()
+        {
             int nx = this.Width;
             int ny = this.Height;
-
-            double dx = (m_max_x - m_min_x) / (nx - 1);
-            double min_y = m_max_y - (ny - 1) * dx;
+            
+            double min_y = m_max_y - (ny - 1) * (m_max_x - m_min_x) / (nx - 1);
 
             for (int i = 0; i < nx; i++)
             {
@@ -195,9 +213,7 @@ namespace ACQ.MandelbrotExplorer
                 for (int j = 0; j < ny; j++)
                 {
                     double alpha_y = (double)j / (ny - 1);
-                    double y0t = min_y * (1.0 - alpha_y) + m_max_y * alpha_y;
-
-                    double y0 = m_max_y - j * dx; // current imaginary value
+                    double y0 = min_y * (1.0 - alpha_y) + m_max_y * alpha_y;
                     
                     double z_real = x0;
                     double z_imag = y0;
@@ -209,31 +225,30 @@ namespace ACQ.MandelbrotExplorer
                         double r2 = z_real * z_real;
                         double i2 = z_imag * z_imag;
 
-                        if (r2 + i2 > 4.0) 
+                        if (r2 + i2 > 4.0)
                         {
-                            m_it_map[i, j] = k;                            
+                            m_it_map[i, j] = k;
                             break;
                         }
 
                         z_imag = 2.0 * z_real * z_imag + y0;
                         z_real = r2 - i2 + x0;
-                    }                    
+                    }
                 }
             }
         }
 
-        public void UpdateParallel()
+        private void UpdateParallel()
         {
             int nx = this.Width;
             int ny = this.Height;
-
-            double dx = (m_max_x - m_min_x) / (nx - 1);
-            double min_y = m_max_y - (ny - 1) * dx;
+            
+            double min_y = m_max_y - (ny - 1) * (m_max_x - m_min_x) / (nx - 1);
 
             //for (int i = 0; i < nx; i++)
             Parallel.For(0, nx, i =>
-            {                
-                double alpha_x = (double) i / (nx - 1);
+            {
+                double alpha_x = (double)i / (nx - 1);
                 double x0 = m_min_x * (1.0 - alpha_x) + m_max_x * alpha_x;
 
                 for (int j = 0; j < ny; j++)
@@ -264,4 +279,100 @@ namespace ACQ.MandelbrotExplorer
             });
         }
     }
+
+    #if GPU
+    class MandelbrotGPU
+    {
+        Context m_context;
+        Accelerator m_accelerator;
+        bool m_disposed;
+        Action<Index1D, ArrayView<int>, int, int, int, double, double, double, double> m_kernel;
+        public MandelbrotGPU()
+        {
+            m_context = Context.CreateDefault();
+            m_accelerator = m_context.GetPreferredDevice(preferCPU: false).CreateAccelerator(m_context);            
+            m_disposed = false;
+            m_kernel = m_accelerator.LoadAutoGroupedStreamKernel<Index1D, ArrayView<int>, int, int, int, double, double, double, double>(MandelbrotKernel);
+
+            Console.WriteLine("{0}", GetInfoString(m_accelerator));
+        }
+
+        private static string GetInfoString(Accelerator a)
+        {
+            System.IO.StringWriter infoString = new System.IO.StringWriter();
+            a.PrintInformation(infoString);
+            return infoString.ToString();
+        }
+
+        public void Update(int nx, int ny, int max_it, double min_x, double max_x, double max_y, int[,] it_map)
+        {
+            double min_y = max_y - (ny - 1) * (max_x - min_x) / (nx - 1);
+
+            var buffer = m_accelerator.Allocate1D<int>(nx * ny);
+
+            // Launch buffer.Length many threads and pass a view to buffer
+            // Note that the kernel launch does not involve any boxing
+            //
+            m_kernel((int)buffer.Length, buffer.View, max_it, nx, ny, min_x, max_x, min_y, max_y);            
+
+            // Reads data from the GPU buffer into a new CPU array.
+            // Implicitly calls accelerator.DefaultStream.Synchronize() to ensure
+            // that the kernel and memory copy are completed first.
+
+            m_accelerator.Synchronize();
+
+            var data = buffer.GetAsArray1D();
+
+            for (int i = 0; i < nx * ny; i++)
+            {
+                it_map[i % nx, i / nx] = data[i];
+            }           
+        }
+
+        static void MandelbrotKernel(
+           Index1D index,             // The global thread index (1D in this case)            
+           ArrayView<int> dataView,   // A view to a chunk of memory (1D in this case)
+           int max_it, int nx, int ny, double min_x, double max_x, double min_y, double max_y)              // A sample uniform constant
+        {
+
+            int ix = index % nx;
+            int iy = index / nx;
+
+            double alpha_x = (double)ix / (nx - 1);
+            double x0 = min_x * (1.0 - alpha_x) + max_x * alpha_x;
+
+            double alpha_y = (double)iy / (ny - 1);
+            double y0 = max_y * (1.0 - alpha_y) + min_y * alpha_y;// current imaginary value                    
+
+            double z_real = x0;
+            double z_imag = y0;
+
+            dataView[index] = max_it;
+
+            for (int k = 0; k < max_it; ++k)
+            {
+                double r2 = z_real * z_real;
+                double i2 = z_imag * z_imag;
+
+                if (r2 + i2 > 4.0)
+                {
+                    dataView[index] = k;
+                    break;
+                }
+
+                z_imag = 2.0 * z_real * z_imag + y0;
+                z_real = r2 - i2 + x0;
+            }
+        }
+
+        public void Dispose()
+        {
+            if (m_disposed) return;
+            m_disposed = true;
+
+            m_accelerator.Dispose();
+            m_context.Dispose();
+        }
+    }
+#endif
 }

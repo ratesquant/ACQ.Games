@@ -15,6 +15,7 @@ namespace ACQ.MandelbrotExplorer
     abstract class ColorPalette
     {
         protected int[] m_palette;
+        protected int[] m_palette_rescaled;
         public ColorPalette(int n_colors = 256)
         {
             m_palette = new int[n_colors];            
@@ -37,6 +38,23 @@ namespace ACQ.MandelbrotExplorer
             {
                 return m_palette[(i * (m_palette.Length - 1) / max_i) ];
             }
+        }
+
+        public void RescaleForMax(int max_inclusive, int black_index)
+        {
+            m_palette_rescaled = new int[max_inclusive + 1];
+
+            for (int i = 0; i < m_palette_rescaled.Length; i++) 
+            {
+                m_palette_rescaled[i] = m_palette[(i * (m_palette.Length - 1) / max_inclusive)];
+            }
+            
+            m_palette_rescaled[black_index] = Color.FromArgb(0, 0, 0).ToArgb();            
+        }
+
+        public int GetRescaledColor(int i)
+        {
+            return m_palette_rescaled[i];
         }
 
         protected void Interpolate(int[] palette, Color[] lut)
