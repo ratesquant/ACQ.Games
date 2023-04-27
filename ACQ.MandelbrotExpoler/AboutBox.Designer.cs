@@ -93,8 +93,7 @@ namespace ACQ.MandelbrotExplorer
             this.textBoxDescription.Size = new System.Drawing.Size(271, 137);
             this.textBoxDescription.TabIndex = 23;
             this.textBoxDescription.TabStop = false;
-            this.textBoxDescription.Text = "Zoom: Mouse Wheel\r\nSelect Zoom Region: Hold Middle Mouse Button\r\nPan: Hold Left M" +
-    "ouse Button\r\nReset Zoom: Double Click Left Mouse Button\r\n";
+            this.textBoxDescription.Text = resources.GetString("textBoxDescription.Text");
             // 
             // AboutBox
             // 

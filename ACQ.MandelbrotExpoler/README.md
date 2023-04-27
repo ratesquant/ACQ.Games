@@ -10,9 +10,9 @@ This application allows users to save images of the fractal in 4K resolution. Th
 ![screenshot](https://github.com/ratesquant/ACQ.Games/blob/714c418325eaf1144f2c19904450b3cbb579bbc1/ACQ.MandelbrotExpoler/images/Screenshot.png?raw=true)
 
 # Controls 
-The C# application provides intuitive controls for navigating and exploring the Mandelbrot set. Here's how the controls work:
+The C# application provides intuitive controls for navigating and exploring the Mandelbrot set including the ability to zoom in up to 1e13 magnification. Here's how the controls work:
 
-    To zoom in or out, simply use your mouse wheel. This allows for quick and easy zooming, making it simple to focus in on a particular area of the fractal.
+    To zoom in or out (up to 1e13), simply use your mouse wheel. This allows for quick and easy zooming, making it simple to focus in on a particular area of the fractal.
 
     For more precise zooming, you can select a specific region to zoom in on by holding down the middle mouse button and dragging your mouse across the desired area. This allows you to zoom in on a specific part of the fractal with greater accuracy and precision.
 

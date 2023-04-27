@@ -11245,4 +11245,10 @@
         /IUf//8V8Yjg72EdyQAAAABJRU5ErkJggg==
 </value>
   </data>
+  <data name="textBoxDescription.Text" xml:space="preserve">
+    <value>To zoom in or out, use your mouse wheel or select region to zoom in on by holding down the middle mouse button and dragging your mouse across the desired area
+
+If you want to reset your zoom level back to the default view, simply double-click the left mouse button.
+</value>
+  </data>
 </root>
