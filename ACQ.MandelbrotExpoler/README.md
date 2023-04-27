@@ -26,12 +26,15 @@ If the application detects that your computer has a compatible GPU, it will auto
 
 # Examples 
 Example with "All" palette - which uses all standard named C# colors
+
 ![screenshot2](https://github.com/ratesquant/ACQ.Games/blob/3263a27f1a3c46fe689ecd3ae85b8250f7cba984/ACQ.MandelbrotExpoler/images/m_all.png?raw=true)
 
 Example with Cubehelix palette (https://jiffyclub.github.io/palettable/cubehelix/)
+
 ![screenshot3](https://github.com/ratesquant/ACQ.Games/blob/3263a27f1a3c46fe689ecd3ae85b8250f7cba984/ACQ.MandelbrotExpoler/images/m_cubehelix.png?raw=true)
 
 Example with jet palette
+
 ![screenshot3](https://github.com/ratesquant/ACQ.Games/blob/3263a27f1a3c46fe689ecd3ae85b8250f7cba984/ACQ.MandelbrotExpoler/images/m_jet.png?raw=true)
 
 
