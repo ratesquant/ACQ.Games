@@ -287,12 +287,14 @@ namespace ACQ.MandelbrotExplorer
         Accelerator m_accelerator;
         bool m_disposed;
         Action<Index1D, ArrayView<int>, int, int, int, double, double, double, double> m_kernel;
+        Action<Index1D, ArrayView<int>, int, int, int, float, float, float, float> m_kernel_float;
         public MandelbrotGPU()
         {
             m_context = Context.CreateDefault();
             m_accelerator = m_context.GetPreferredDevice(preferCPU: false).CreateAccelerator(m_context);            
             m_disposed = false;
             m_kernel = m_accelerator.LoadAutoGroupedStreamKernel<Index1D, ArrayView<int>, int, int, int, double, double, double, double>(MandelbrotKernel);
+            m_kernel_float = m_accelerator.LoadAutoGroupedStreamKernel<Index1D, ArrayView<int>, int, int, int, float, float, float, float>(MandelbrotKernel_float);
 
             Console.WriteLine("{0}", GetInfoString(m_accelerator));
         }
@@ -314,7 +316,8 @@ namespace ACQ.MandelbrotExplorer
             // Launch buffer.Length many threads and pass a view to buffer
             // Note that the kernel launch does not involve any boxing
             //
-            m_kernel((int)buffer.Length, buffer.View, max_it, nx, ny, min_x, max_x, min_y, max_y);            
+            //m_kernel_float((int)buffer.Length, buffer.View, max_it, nx, ny, (float)min_x, (float)max_x, (float)min_y, (float)max_y);
+            m_kernel((int)buffer.Length, buffer.View, max_it, nx, ny, min_x, max_x, min_y, max_y);
 
             // Reads data from the GPU buffer into a new CPU array.
             // Implicitly calls accelerator.DefaultStream.Synchronize() to ensure
@@ -360,6 +363,42 @@ namespace ACQ.MandelbrotExplorer
                 }
 
                 z_imag = 2.0 * z_real * z_imag + y0;
+                z_real = r2 - i2 + x0;
+            }
+        }
+
+        static void MandelbrotKernel_float(
+    Index1D index,             // The global thread index (1D in this case)            
+    ArrayView<int> dataView,   // A view to a chunk of memory (1D in this case)
+    int max_it, int nx, int ny, float min_x, float max_x, float min_y, float max_y)              // A sample uniform constant
+        {
+
+            int ix = index % nx;
+            int iy = index / nx;
+
+            float alpha_x = (float)ix / (nx - 1);
+            float x0 = min_x * (1.0f - alpha_x) + max_x * alpha_x;
+
+            float alpha_y = (float)iy / (ny - 1);
+            float y0 = max_y * (1.0f - alpha_y) + min_y * alpha_y;// current imaginary value                    
+
+            float z_real = x0;
+            float z_imag = y0;
+
+            dataView[index] = max_it;
+
+            for (int k = 0; k < max_it; ++k)
+            {
+                float r2 = z_real * z_real;
+                float i2 = z_imag * z_imag;
+
+                if (r2 + i2 > 4.0f)
+                {
+                    dataView[index] = k;
+                    break;
+                }
+
+                z_imag = 2.0f * z_real * z_imag + y0;
                 z_real = r2 - i2 + x0;
             }
         }
