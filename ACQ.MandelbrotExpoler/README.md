@@ -1,7 +1,7 @@
 ﻿# Mandelbrot Explorer
 C# .NET application for visual exploration of the Mandelbrot set
 
-![alt text](https://github.com/ratesquant/ACQ.Games/tree/main/ACQ.MandelbrotExpoler/images/Screenshot.png)
+![screenshot](https://github.com/ratesquant/ACQ.Games/tree/main/ACQ.MandelbrotExpoler/images/Screenshot.png?raw=true)
 
 # Controls 
 1. Zoom: Mouse Wheel
