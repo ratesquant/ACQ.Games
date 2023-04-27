@@ -36,9 +36,3 @@ Example with Cubehelix palette (https://jiffyclub.github.io/palettable/cubehelix
 Example with jet palette
 
 ![screenshot3](https://github.com/ratesquant/ACQ.Games/blob/3263a27f1a3c46fe689ecd3ae85b8250f7cba984/ACQ.MandelbrotExpoler/images/m_jet.png?raw=true)
-
-
-# Acknowledgments 
-Uses ILGPU (https://ilgpu.net/) library to do calculations on GPU
-Uses Cubehelix palette (https://jiffyclub.github.io/palettable/cubehelix/)
-
