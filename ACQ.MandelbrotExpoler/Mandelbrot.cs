@@ -26,7 +26,7 @@ namespace ACQ.MandelbrotExplorer
     class Mandelbrot
     {
 #if GPU
-        private MandelbrotGPU m_gpu_calc = new MandelbrotGPU();
+        private MandelbrotGPU m_gpu_calc = null;
 #endif
 
         private const double m_max_x_default = 0.9;
@@ -43,6 +43,16 @@ namespace ACQ.MandelbrotExplorer
         {
             m_max_it = max_it;
             m_it_map = new int[xsize, ysize];
+
+            try
+            {
+                m_gpu_calc = new MandelbrotGPU();
+            }
+            catch (Exception e)
+            {
+                m_gpu_calc = null;
+                Console.WriteLine(e.Message);
+            }
 
             SetDefaultRange();
         }
@@ -193,9 +203,15 @@ namespace ACQ.MandelbrotExplorer
         }
 
         public void Update()
-        {
-            //UpdateParallel();
-            m_gpu_calc.Update(this.Width, this.Height, m_max_it, m_min_x, m_max_x, m_max_y, m_it_map);            
+        {            
+            if (m_gpu_calc != null)
+            {
+                m_gpu_calc.Update(this.Width, this.Height, m_max_it, m_min_x, m_max_x, m_max_y, m_it_map);
+            }
+            else
+            {
+                UpdateParallel();
+            }
         }
 
         private void UpdateBasic()
@@ -344,7 +360,7 @@ namespace ACQ.MandelbrotExplorer
             double x0 = min_x * (1.0 - alpha_x) + max_x * alpha_x;
 
             double alpha_y = (double)(iy) / (ny - 1);
-            double y0 = max_y * (1.0 - alpha_y) + min_y * alpha_y;// current imaginary value                    
+            double y0 = max_y * (1.0 - alpha_y) + min_y * alpha_y;// current imaginary value                                
 
             double z_real = x0;
             double z_imag = y0;
@@ -372,7 +388,6 @@ namespace ACQ.MandelbrotExplorer
     ArrayView<int> dataView,   // A view to a chunk of memory (1D in this case)
     int max_it, int nx, int ny, float min_x, float max_x, float min_y, float max_y)              // A sample uniform constant
         {
-
             int ix = index % nx;
             int iy = index / nx;
 

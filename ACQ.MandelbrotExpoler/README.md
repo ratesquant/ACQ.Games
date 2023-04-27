@@ -22,3 +22,20 @@ The application provides intuitive controls for navigating and exploring the Man
 
 Overall, these controls provide an intuitive and user-friendly way to explore the Mandelbrot set, allowing users to zoom in, select regions, pan around the fractal, and reset their view with ease.
 
+If the application detects that your computer has a compatible GPU, it will automatically attempt to use it for the calculations required to render the Mandelbrot set (ILGPU (https://ilgpu.net/)). This can significantly speed up the rendering process and provide smoother and more responsive navigation when exploring the fractal.
+
+# Examples 
+Example with "All" palette - which uses all standard named C# colors
+![screenshot2](https://github.com/ratesquant/ACQ.Games/blob/3263a27f1a3c46fe689ecd3ae85b8250f7cba984/ACQ.MandelbrotExpoler/images/m_all.png?raw=true)
+
+Example with Cubehelix palette (https://jiffyclub.github.io/palettable/cubehelix/)
+![screenshot3](https://github.com/ratesquant/ACQ.Games/blob/3263a27f1a3c46fe689ecd3ae85b8250f7cba984/ACQ.MandelbrotExpoler/images/m_cubehelix.png?raw=true)
+
+Example with jet palette
+![screenshot3](https://github.com/ratesquant/ACQ.Games/blob/3263a27f1a3c46fe689ecd3ae85b8250f7cba984/ACQ.MandelbrotExpoler/images/m_jet.png?raw=true)
+
+
+# Acknowledgments 
+Uses ILGPU (https://ilgpu.net/) library to do calculations on GPU
+Uses Cubehelix palette (https://jiffyclub.github.io/palettable/cubehelix/)
+
