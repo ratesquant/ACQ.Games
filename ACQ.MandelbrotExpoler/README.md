@@ -1,11 +1,11 @@
 ﻿# Mandelbrot Explorer
-The C# application is a graphical user interface designed to explore the Mandelbrot set. It provides map-like controls for zooming and panning the image, allowing users to navigate and explore the fractal in detail.
+The C# application is a graphical user interface designed to explore the intricate beauty of the Mandelbrot set. It provides map-like controls for zooming and panning the image, allowing users to navigate and explore the fractal in detail.
 
 The Mandelbrot set is a complex mathematical object that can be represented as a colorful image. The application uses complex numbers and the iterative calculation of the Mandelbrot set to generate the image. Users can zoom in on a particular region of the image by clicking and dragging on the map, and pan around the fractal by dragging the image itself.
 
-The application also includes various settings to customize the display of the fractal, such as changing the color scheme, adjusting the maximum iteration depth, and selecting a specific region of the Mandelbrot set to focus on. Overall, the application is a powerful tool for exploring and visualizing the intricate beauty of the Mandelbrot set.
+The application also includes various settings to customize the display of the fractal, such as changing the color scheme, adjusting the maximum iteration depth, and selecting a specific region of the Mandelbrot set to focus on.
 
-This application allows users to save images of the fractal in 4K resolution. This feature is particularly useful for creating stunning visualizations and wallpapers.
+This application allows users to save images of the fractal in 4K resolution. 
 
 ![screenshot](https://github.com/ratesquant/ACQ.Games/blob/714c418325eaf1144f2c19904450b3cbb579bbc1/ACQ.MandelbrotExpoler/images/Screenshot.png?raw=true)
 
