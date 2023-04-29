@@ -94,7 +94,7 @@ namespace ACQ.MandelbrotExplorer
 
             Point mouse_location = e.Location;
 
-            double delta = 0.1*e.Delta / 120.0;
+            double delta = 0.2*e.Delta / 120.0;
 
             int xpos_min = (int) Math.Round(mouse_location.X * delta);
             int xpos_max = (int) Math.Round(rect.Width - (rect.Width - mouse_location.X) * delta);
@@ -189,7 +189,7 @@ namespace ACQ.MandelbrotExplorer
             }
             if (m_zoom)
             {
-                this.pictureBox1.Refresh();
+                this.pictureBox1.Refresh(); //this is needed to draw zoom rectangle 
             }
 
             UpdateStatusLabel();
@@ -328,22 +328,29 @@ namespace ACQ.MandelbrotExplorer
         private void SavePoster(string filename)
         {
             int poster_width = 3840;
-            int poster_height = 2160;
-            Mandelbrot fgen = new Mandelbrot(m_total_max_it, poster_width, poster_height, m_fgen.MinX, m_fgen.MaxX, m_fgen.MaxY);
+            int poster_height = 2160;           
 
-            fgen.Update();
-
-            using (var bitmap = new DirectBitmap(fgen.Width, fgen.Height))
+            string palette_name = this.toolStripComboBox1.SelectedItem.ToString();
+            if (m_available_palettes.ContainsKey(palette_name))
             {
+                //create temp palette
+                var my_palette = Activator.CreateInstance(m_available_palettes[palette_name], 256) as ColorPalette;
+                my_palette.RescaleForMax(m_total_max_it, m_total_max_it);
 
-                for (int j = 0; j < fgen.Height; j++)                    
+                Mandelbrot fgen = new Mandelbrot(m_total_max_it, poster_width, poster_height, m_fgen.MinX, m_fgen.MaxX, m_fgen.MaxY);
+                fgen.Update();
+
+                using (var bitmap = new DirectBitmap(fgen.Width, fgen.Height))
                 {
-                    for (int i = 0; i < fgen.Width; i++)
+                    for (int j = 0; j < fgen.Height; j++)
                     {
-                        bitmap.SetPixel(i, j, m_palette.GetRescaledColor(m_fgen.IterationMap[i, j]));
+                        for (int i = 0; i < fgen.Width; i++)
+                        {
+                            bitmap.SetPixel(i, j, my_palette.GetRescaledColor(fgen.IterationMap[i, j]));
+                        }
                     }
+                    bitmap.Bitmap.Save(filename, ImageFormat.Png);
                 }
-                bitmap.Bitmap.Save(filename, ImageFormat.Png);
             }
         }
     }
