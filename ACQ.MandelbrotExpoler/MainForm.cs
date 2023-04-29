@@ -327,7 +327,7 @@ namespace ACQ.MandelbrotExplorer
 
         private void SavePoster(string filename)
         {
-            int poster_width = 3840;
+            int poster_width  = 3840;
             int poster_height = 2160;           
 
             string palette_name = this.toolStripComboBox1.SelectedItem.ToString();
