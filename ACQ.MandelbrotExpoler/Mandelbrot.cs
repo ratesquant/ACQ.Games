@@ -27,7 +27,7 @@ namespace ACQ.MandelbrotExplorer
     {
 #if GPU
         private MandelbrotGPU m_gpu_calc = null;
-#endif
+#endif  
 
         private const double m_max_x_default = 0.9;
         private const double m_min_x_default = -2.5;
@@ -38,6 +38,7 @@ namespace ACQ.MandelbrotExplorer
         private double m_max_y; //we keep aspect ratio constant, so min_y will be determined by the size of the window
 
         int[,] m_it_map;
+        int[,] m_it_map_temp;
 
         public Mandelbrot(int max_it, int xsize, int ysize)
         {
@@ -51,7 +52,7 @@ namespace ACQ.MandelbrotExplorer
             catch (Exception e)
             {
                 m_gpu_calc = null;
-                Console.WriteLine(e.Message);
+                System.Diagnostics.Debug.Write(e.Message);
             }
 
             SetDefaultRange();
@@ -178,14 +179,14 @@ namespace ACQ.MandelbrotExplorer
 
 
         public void SetRange(int xpos_min, int xpos_max, int ypos_max)
-        {
+        {       
             int nx = this.Width;
             int ny = this.Height;
             double dx = (m_max_x - m_min_x) / (nx - 1);
 
             m_max_x = m_min_x + xpos_max * dx;
             m_min_x = m_min_x + xpos_min * dx;
-            m_max_y = m_max_y - ypos_max * dx;
+            m_max_y = m_max_y - ypos_max * dx;         
         }
 
         public void ShiftRange(int xpos_delta, int ypos_delta)
@@ -193,24 +194,55 @@ namespace ACQ.MandelbrotExplorer
             int nx = this.Width;
             int ny = this.Height;
 
-            double dx = (m_max_x - m_min_x) / (nx - 1);
-
-            double x_delta = xpos_delta * dx;
+            double x_range = (m_max_x - m_min_x);
+            double x_delta = x_range * xpos_delta / (nx - 1);
 
             m_min_x = m_min_x - x_delta;
             m_max_x = m_max_x - x_delta;
-            m_max_y = m_max_y + ypos_delta * dx;
+            m_max_y = m_max_y + x_range * ypos_delta / (nx - 1);
+
+            if (m_it_map_temp == null || m_it_map_temp.GetLength(0) != nx  || m_it_map_temp.GetLength(1) != ny)
+            {
+                m_it_map_temp = new int[nx, ny];
+            }
+
+            //Console.WriteLine("shift: {0} {1}", xpos_delta, ypos_delta);
+
+            int x_offset_pos = Math.Min(nx, Math.Max(0, xpos_delta)); //positive offset
+            int y_offset_pos = Math.Min(ny, Math.Max(0, ypos_delta));
+
+            int x_offset_neg = Math.Min(nx, -Math.Min(0, xpos_delta));//negative offset
+            int y_offset_neg = Math.Min(ny, -Math.Min(0, ypos_delta));
+            for (int i = x_offset_pos; i <nx - x_offset_neg; i++)
+            {
+                for (int j = y_offset_pos; j < ny - y_offset_neg; j++)
+                {
+                    m_it_map_temp[i, j] = m_it_map[i - x_offset_pos + x_offset_neg, j - y_offset_pos + y_offset_neg];
+                }
+            }
+
+            //swap pointers
+            int[,] temp = m_it_map_temp;
+            m_it_map_temp = m_it_map;
+            m_it_map = temp;            
+
+            UpdatePartialParallel(0, x_offset_pos, 0, ny);
+            UpdatePartialParallel(nx - x_offset_neg, nx, 0, ny);
+
+            UpdatePartialParallel(x_offset_pos, nx - x_offset_neg, 0, y_offset_pos);
+            UpdatePartialParallel(x_offset_pos, nx - x_offset_neg, ny - y_offset_neg, ny);
+            //UpdatePartialParallel();
         }
 
         public void Update()
         {            
             if (m_gpu_calc != null)
             {
-                m_gpu_calc.Update(this.Width, this.Height, m_max_it, m_min_x, m_max_x, m_max_y, m_it_map);
+                m_gpu_calc.Update(this.Width, this.Height, m_max_it, m_min_x, m_max_x, m_max_y, m_it_map);                
             }
             else
             {
-                UpdateParallel();
+                UpdateParallel();                
             }
         }
 
@@ -268,6 +300,47 @@ namespace ACQ.MandelbrotExplorer
                 double x0 = m_min_x * (1.0 - alpha_x) + m_max_x * alpha_x;
 
                 for (int j = 0; j < ny; j++)
+                {
+                    double alpha_y = (double)j / (ny - 1);
+                    double y0 = m_max_y * (1.0 - alpha_y) + min_y * alpha_y;// current imaginary value                    
+
+                    double z_real = x0;
+                    double z_imag = y0;
+
+                    m_it_map[i, j] = m_max_it;
+
+                    for (int k = 0; k < m_max_it; ++k)
+                    {
+                        double r2 = z_real * z_real;
+                        double i2 = z_imag * z_imag;
+
+                        if (r2 + i2 > 4.0)
+                        {
+                            m_it_map[i, j] = k;
+                            break;
+                        }
+
+                        z_imag = 2.0 * z_real * z_imag + y0;
+                        z_real = r2 - i2 + x0;
+                    }
+                }
+            });
+        }
+
+        private void UpdatePartialParallel(int i_min, int i_max, int j_min, int j_max)
+        {
+            int nx = this.Width;
+            int ny = this.Height;
+
+            double min_y = m_max_y - (ny - 1) * (m_max_x - m_min_x) / (nx - 1);
+
+            //for (int i = 0; i < nx; i++)
+            Parallel.For(i_min, i_max, i =>
+            {
+                double alpha_x = (double)i / (nx - 1);
+                double x0 = m_min_x * (1.0 - alpha_x) + m_max_x * alpha_x;
+
+                for (int j = j_min; j < j_max; j++)
                 {
                     double alpha_y = (double)j / (ny - 1);
                     double y0 = m_max_y * (1.0 - alpha_y) + min_y * alpha_y;// current imaginary value                    

@@ -24,6 +24,7 @@ namespace ACQ.MandelbrotExplorer
         DirectBitmap m_bitmap;        
         int m_max_it = 250;
         Mandelbrot m_fgen;
+        
 
         //mouse zoom
         bool m_zoom = false;
@@ -126,17 +127,18 @@ namespace ACQ.MandelbrotExplorer
             
         }
 
-        void UpdateMandelbrot()
+        void UpdateMandelbrot(bool recompute = true)
         {
-            HRTimer timer = new HRTimer();            
+            HRTimer timer = new HRTimer();
 
-            m_fgen.Update();
-
-            double elapsed = timer.toc();
+            if (recompute)
+            {
+                m_fgen.Update();
+            }
 
             UpdateBitmap();
 
-            Console.WriteLine("Elapsed: {0:F2} fps ({1:F2})", 1.0/timer.toc(), 1.0/ elapsed);
+            Console.WriteLine("Elapsed: {0:F2} fps", 1.0/timer.toc());
         }
 
         void UpdateBitmap()        
@@ -182,7 +184,7 @@ namespace ACQ.MandelbrotExplorer
 
                 m_movePoint = mouse_location;
 
-                UpdateMandelbrot();
+                UpdateMandelbrot(false);
                 this.pictureBox1.Refresh();                
             }
             if (m_zoom)
@@ -338,7 +340,7 @@ namespace ACQ.MandelbrotExplorer
                 {
                     for (int i = 0; i < fgen.Width; i++)
                     {
-                        bitmap.SetPixel(i, j, m_palette[fgen.IterationMap[i, j], fgen.MaxIt]);
+                        bitmap.SetPixel(i, j, m_palette.GetRescaledColor(m_fgen.IterationMap[i, j]));
                     }
                 }
                 bitmap.Bitmap.Save(filename, ImageFormat.Png);

@@ -7,11 +7,6 @@ using System.Drawing;
 
 namespace ACQ.MandelbrotExplorer
 {
-    enum enColorPalette
-    {
-        Grey, Red, Blue
-    }
-
     abstract class ColorPalette
     {
         protected int[] m_palette;
@@ -32,24 +27,16 @@ namespace ACQ.MandelbrotExplorer
             }            
         }
 
-        public int this[int i, int max_i]
-        {
-            get
-            {
-                return m_palette[(i * (m_palette.Length - 1) / max_i) ];
-            }
-        }
-
         public void RescaleForMax(int max_inclusive, int black_index)
         {
             m_palette_rescaled = new int[max_inclusive + 1];
 
-            for (int i = 0; i < m_palette_rescaled.Length; i++) 
+            for (int i = 0; i < m_palette_rescaled.Length-1; i++) 
             {
-                m_palette_rescaled[i] = m_palette[(i * (m_palette.Length - 1) / max_inclusive)];
+                m_palette_rescaled[i] = m_palette[i * m_palette.Length / max_inclusive];
             }
             
-            m_palette_rescaled[black_index] = Color.FromArgb(0, 0, 0).ToArgb();            
+            m_palette_rescaled[Math.Min(black_index, max_inclusive)] = Color.FromArgb(0, 0, 0).ToArgb();            
         }
 
         public int GetRescaledColor(int i)
@@ -72,8 +59,7 @@ namespace ACQ.MandelbrotExplorer
                 int value_b = (int)(lut[lut_index1].B * (1 - delta) + lut[lut_index1 + 1].B * delta);
 
                 palette[i] = Color.FromArgb(value_r, value_g, value_b).ToArgb();
-            }
-            palette[palette.Length - 1] = Color.FromArgb(0, 0, 0).ToArgb();
+            }           
         }
     }
 
@@ -92,8 +78,7 @@ namespace ACQ.MandelbrotExplorer
                 int value = (int)(128.0 * x);
                 int value_rg = (int)(255.0 * x);
                 palette[i] = Color.FromArgb(value + 127, value_rg, value_rg).ToArgb();
-            }
-            palette[palette.Length - 1] = Color.FromArgb(0, 0, 0).ToArgb();
+            }            
         }
     }
 
@@ -126,8 +111,7 @@ namespace ACQ.MandelbrotExplorer
                 int value = (int)(200.0 * col);
                 int value_rg = (int)(255.0 * col);
                 palette[i] = Color.FromArgb(value_rg, value_rg, value+55).ToArgb();
-            }
-            palette[palette.Length-1] = Color.FromArgb(0, 0, 0).ToArgb();
+            }            
         }
     }
 
@@ -218,7 +202,7 @@ namespace ACQ.MandelbrotExplorer
 
         static ColorPaletteBanded()
         {
-            m_lut = new Color[64];
+            m_lut = new Color[256];
 
             for (int i = 0; i < m_lut.Length; i++)
             {
