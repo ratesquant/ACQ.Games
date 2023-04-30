@@ -7,7 +7,7 @@ The application also includes various settings to customize the display of the f
 
 This application allows users to save images of the fractal in 4K resolution. 
 
-![screenshot](https://github.com/ratesquant/ACQ.Games/blob/714c418325eaf1144f2c19904450b3cbb579bbc1/ACQ.MandelbrotExpoler/images/Screenshot2.png?raw=true)
+![screenshot](https://github.com/ratesquant/ACQ.Games/blob/2a573fefe2d3f4dcf2bfc00fcb28cbbb27f78424/ACQ.MandelbrotExplorer/images/Screenshot2.png?raw=true)
 
 # Controls 
 The application provides intuitive controls for navigating and exploring the Mandelbrot set including the ability to zoom in up to 1e13 magnification. Here's how the controls work:
