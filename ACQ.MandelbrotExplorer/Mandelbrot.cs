@@ -288,43 +288,7 @@ namespace ACQ.MandelbrotExplorer
 
         private void UpdateParallel()
         {
-            int nx = this.Width;
-            int ny = this.Height;
-            
-            double min_y = m_max_y - (ny - 1) * (m_max_x - m_min_x) / (nx - 1);
-
-            //for (int i = 0; i < nx; i++)
-            Parallel.For(0, nx, i =>
-            {
-                double alpha_x = (double)i / (nx - 1);
-                double x0 = m_min_x * (1.0 - alpha_x) + m_max_x * alpha_x;
-
-                for (int j = 0; j < ny; j++)
-                {
-                    double alpha_y = (double)j / (ny - 1);
-                    double y0 = m_max_y * (1.0 - alpha_y) + min_y * alpha_y;// current imaginary value                    
-
-                    double z_real = x0;
-                    double z_imag = y0;
-
-                    m_it_map[i, j] = m_max_it;
-
-                    for (int k = 0; k < m_max_it; ++k)
-                    {
-                        double r2 = z_real * z_real;
-                        double i2 = z_imag * z_imag;
-
-                        if (r2 + i2 > 4.0)
-                        {
-                            m_it_map[i, j] = k;
-                            break;
-                        }
-
-                        z_imag = 2.0 * z_real * z_imag + y0;
-                        z_real = r2 - i2 + x0;
-                    }
-                }
-            });
+            UpdatePartialParallel(0, this.Width, 0, this.Height);
         }
 
         private void UpdatePartialParallel(int i_min, int i_max, int j_min, int j_max)

@@ -206,7 +206,7 @@ namespace ACQ.MandelbrotExplorer
                     it_count = m_fgen.IterationMap[m_mouse_pointer.X, m_mouse_pointer.Y];
                 }
 
-                this.toolStripStatusLabel1.Text = String.Format("Re: {0:F12} Im: {1:F12} (it: {2}), Zoom: {3:E2}", point.Item1, point.Item2, it_count, m_fgen.ZoomLevel);
+                this.toolStripStatusLabel1.Text = String.Format("Re: {0:F14} Im: {1:F14} (it: {2}), Zoom: {3:E2}", point.Item1, point.Item2, it_count, m_fgen.ZoomLevel);
             }
         }
 
